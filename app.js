@@ -936,7 +936,6 @@
         syncCurrentNote();
         saveNotes();
         renderNoteList();
-        scheduleSync();
         switchView(VIEW_LIST);
       }
     });
@@ -963,7 +962,6 @@
       syncCurrentNote();
       saveNotes();
       renderNoteList();
-      scheduleSync();
       switchView(VIEW_LIST);
     });
 
