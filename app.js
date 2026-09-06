@@ -922,6 +922,7 @@
   }
 
   function setupEditor() {
+    if (!noteTitleEl || !editorEl) return;
     noteTitleEl.addEventListener('input', debouncedSave);
     editorEl.addEventListener('input', handleEditorInput);
     editorEl.addEventListener('keydown', handleKeydown);
