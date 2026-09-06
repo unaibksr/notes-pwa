@@ -848,6 +848,34 @@
     formatBlock('P');
   }
 
+  function cleanBlankLines() {
+    const walker = document.createTreeWalker(editorEl, NodeFilter.SHOW_ELEMENT, null, false);
+    const emptyBlocks = [];
+    let node;
+    const allowedEmpty = new Set(['BR', 'IMG', 'HR']);
+    while ((node = walker.nextNode())) {
+      if (node === editorEl) continue;
+      const tag = node.tagName.toLowerCase();
+      const isBlock = /^(p|h[1-6]|li|blockquote|pre|ul|ol|div)$/.test(tag);
+      if (!isBlock) continue;
+      const text = (node.textContent || '').replace(/\u00a0/g, ' ').trim();
+      if (text.length === 0 && !allowedEmpty.has(node.tagName)) {
+        const hasOnlyEmptyBlocks = Array.from(node.children).every(
+          child => child.tagName === 'BR' || (/^(p|h[1-6]|li|blockquote|pre|ul|ol|div)$/.test(child.tagName.toLowerCase()) && (child.textContent || '').replace(/\u00a0/g, ' ').trim().length === 0)
+        );
+        if (hasOnlyEmptyBlocks) emptyBlocks.push(node);
+      }
+    }
+    emptyBlocks.forEach(node => {
+      const parent = node.parentNode;
+      if (parent) parent.removeChild(node);
+    });
+    if (emptyBlocks.length) {
+      pushHistory();
+      debouncedSave();
+    }
+  }
+
   function handleKeydown(e) {
     if (e.key === 'Tab') {
       e.preventDefault();
@@ -951,6 +979,8 @@
     $('#btn-bold').addEventListener('click', toggleBold);
 
     $('#btn-justify')?.addEventListener('click', toggleJustify);
+
+    $('#btn-clean')?.addEventListener('click', cleanBlankLines);
 
     $('#btn-font-increase')?.addEventListener('click', increaseFontSize);
     $('#btn-font-decrease')?.addEventListener('click', decreaseFontSize);
