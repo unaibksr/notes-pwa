@@ -10,3 +10,6 @@ coverage
 *.swo
 *~
 Thumbs.db
+.env
+.vercel
+supabase-config.js
