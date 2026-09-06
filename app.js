@@ -388,6 +388,28 @@
     }
   }
 
+  function remoteToLocal(remote) {
+    if (!remote) return null;
+    return {
+      id: remote.id,
+      title: remote.title || '',
+      content: remote.content || '',
+      createdAt: remote.created_at || now(),
+      updatedAt: remote.updated_at || now()
+    };
+  }
+
+  function localToRemote(note) {
+    return {
+      id: note.id,
+      user_id: currentUserId,
+      title: note.title || '',
+      content: note.content || '',
+      created_at: note.createdAt || now(),
+      updated_at: note.updatedAt || now()
+    };
+  }
+
   async function syncNotes() {
     if (!supabase || !currentUserId || !isOnline) return;
     try {
@@ -398,21 +420,28 @@
         .eq('user_id', currentUserId)
         .order('updated_at', { ascending: false });
       if (error) throw error;
-      const remoteMap = new Map((remoteNotes || []).map(n => [n.id, n]));
-      const localMap = new Map(notes.map(n => [n.id, n]));
+      const normalizedRemote = (remoteNotes || [])
+        .map(remoteToLocal)
+        .filter(Boolean);
+      const remoteMap = new Map(normalizedRemote.map(n => [n.id, n]));
       const merged = new Map();
       for (const note of notes) {
         const remote = remoteMap.get(note.id);
-        if (remote && new Date(remote.updated_at) > new Date(note.updatedAt)) {
+        if (remote && new Date(remote.updatedAt) > new Date(note.updatedAt)) {
           merged.set(remote.id, remote);
         } else {
           merged.set(note.id, note);
         }
       }
-      for (const note of remoteNotes || []) {
+      for (const note of normalizedRemote) {
         if (!merged.has(note.id)) merged.set(note.id, note);
       }
       notes = Array.from(merged.values());
+      const toUpsert = notes.map(localToRemote);
+      const { error: upsertError } = await supabase
+        .from('notes')
+        .upsert(toUpsert, { onConflict: 'id' });
+      if (upsertError) throw upsertError;
       await saveNotes();
       renderNoteList();
       updateSyncStatus('synced', 'Synced');
