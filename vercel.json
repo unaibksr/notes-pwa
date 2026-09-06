@@ -1,7 +1,0 @@
-{
-  "buildCommand": "node vercel-build.js",
-  "outputDirectory": ".",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/$1" }
-  ]
-}
