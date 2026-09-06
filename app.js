@@ -361,7 +361,6 @@
     try {
       const operations = notes.map(note => dbPut(note));
       await Promise.all(operations);
-      scheduleSync();
     } catch (e) {
       console.warn('Failed to save notes to IndexedDB', e);
     }
@@ -494,6 +493,7 @@
       await saveNotes();
       renderNoteList();
       showSaveStatus('Saved');
+      scheduleSync();
     }, 400);
   }
 
@@ -936,6 +936,7 @@
         syncCurrentNote();
         saveNotes();
         renderNoteList();
+        scheduleSync();
         switchView(VIEW_LIST);
       }
     });
@@ -962,6 +963,7 @@
       syncCurrentNote();
       saveNotes();
       renderNoteList();
+      scheduleSync();
       switchView(VIEW_LIST);
     });
 
