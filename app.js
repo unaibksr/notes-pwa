@@ -43,6 +43,7 @@
   let currentUserId = null;
   let isOnline = navigator.onLine;
   let syncTimeout = null;
+  let isSyncing = false;
 
   function generateId() {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -421,7 +422,8 @@
   }
 
   async function syncNotes() {
-    if (!supabase || !currentUserId || !isOnline) return;
+    if (!supabase || !currentUserId || !isOnline || isSyncing) return;
+    isSyncing = true;
     try {
       updateSyncStatus('syncing', 'Syncing...');
       const { data: remoteNotes, error } = await supabase
@@ -458,6 +460,8 @@
     } catch (e) {
       console.warn('Sync failed', e);
       updateSyncStatus('error', 'Sync failed');
+    } finally {
+      isSyncing = false;
     }
   }
 
