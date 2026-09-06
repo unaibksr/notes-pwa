@@ -376,7 +376,7 @@
       const { data, error } = await supabase.auth.signInAnonymously();
       if (error) {
         console.warn('Supabase anonymous auth failed', error);
-        const message = error.message || 'Auth failed';
+        const message = (error && error.message) ? error.message : 'Auth failed';
         updateSyncStatus('error', message);
         return;
       }
@@ -971,6 +971,7 @@
   }
 
   function setupModal() {
+    if (!modalOverlayEl || !modalCancelBtn || !modalConfirmBtn) return;
     modalCancelBtn.addEventListener('click', hideModal);
     modalConfirmBtn.addEventListener('click', confirmModal);
     modalOverlayEl.addEventListener('click', (e) => {
