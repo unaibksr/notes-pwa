@@ -376,7 +376,8 @@
       const { data, error } = await supabase.auth.signInAnonymously();
       if (error) {
         console.warn('Supabase anonymous auth failed', error);
-        updateSyncStatus('error', 'Auth failed');
+        const message = error.message || 'Auth failed';
+        updateSyncStatus('error', message);
         return;
       }
       currentUserId = data.user?.id;
@@ -385,6 +386,15 @@
     } catch (e) {
       console.warn('Supabase init failed', e);
       updateSyncStatus('error', 'Sync error');
+    }
+  }
+
+  async function tryEnableAnonymousAuth() {
+    if (!supabase) return;
+    try {
+      await supabase.auth.signInAnonymously();
+    } catch (e) {
+      console.warn('Anonymous auth not available:', e);
     }
   }
 
